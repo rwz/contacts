@@ -1,10 +1,9 @@
-require 'rubygems'
 require 'rake'
 require 'rake/testtask'
 require 'rake/rdoctask'
 require 'rake/gempackagetask'
 require 'rake/contrib/rubyforgepublisher'
-require 'lib/contacts'
+require File.expand_path '../lib/contacts', __FILE__
 
 PKG_VERSION = Contacts::VERSION
 
