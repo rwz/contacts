@@ -69,17 +69,16 @@ class Contacts
         go = true
         index = 0
         
+        email_match_text_beginning = Regexp.escape("http://m.mail.live.com/?rru=compose&amp;to=")
+        email_match_text_end = Regexp.escape("&amp;")
+        
         while(go) do
           go = false
           url = URI.parse(get_contact_list_url(index))
           http = open_http(url)
           resp, data = http.get(get_contact_list_url(index), "Cookie" => @cookies)
           
-          email_match_text_beginning = Regexp.escape("http://m.mail.live.com/?rru=compose&amp;to=")
-          email_match_text_end = Regexp.escape("&amp;")
-          
-          raw_html = resp.body.split("
-").grep(/(?:e|dn)lk[0-9]+/)
+          raw_html = resp.body.split("\n").grep(/(?:e|dn)lk[0-9]+/)
           raw_html.inject(-1) do |memo, row|
             c_info = row.match(/(e|dn)lk([0-9])+/)
             
@@ -89,7 +88,7 @@ class Contacts
             # Grab info
             case c_info[1]
               when "e" # Email
-                build_contacts.last[1] = row.match(/#{email_match_text_beginning}(.*)#{email_match_text_end}/)[1]
+                build_contacts.last[1] = row.match(/#{email_match_text_beginning}(.*?)#{email_match_text_end}/)[1]
               when "dn" # Name
                 build_contacts.last[0] = row.match(/<a[^>]*>(.+)<\/a>/)[1]
             end
@@ -102,15 +101,23 @@ class Contacts
           index += 1
         end
         
-        build_contacts.each do |contact|
-          unless contact[1].nil?
-            # Only return contacts with email addresses
-            contact[1] = CGI::unescape(contact[1])
-            @contacts << contact
+        # build_contacts.each do |contact|
+        #   unless contact[1].nil?
+        #     # Only return contacts with email addresses
+        #     contact[1] = CGI::unescape(contact[1])
+        #     @contacts << contact
+        #   end
+        # end
+        # 
+        # return @contacts
+        @contacts = build_contacts.map do |raw_contact|
+          unless raw_contact[1].nil?
+            # double excaping
+            email = CGI.unescape(CGI.unescape(raw_contact[1]))
+            name = raw_contact[0] == email ? nil : raw_contact[0]
+            [name, email]
           end
-        end
-        
-        return @contacts
+        end.compact
       end
     end
     
