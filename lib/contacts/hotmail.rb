@@ -101,15 +101,6 @@ class Contacts
           index += 1
         end
         
-        # build_contacts.each do |contact|
-        #   unless contact[1].nil?
-        #     # Only return contacts with email addresses
-        #     contact[1] = CGI::unescape(contact[1])
-        #     @contacts << contact
-        #   end
-        # end
-        # 
-        # return @contacts
         @contacts = build_contacts.map do |raw_contact|
           unless raw_contact[1].nil?
             # double excaping
